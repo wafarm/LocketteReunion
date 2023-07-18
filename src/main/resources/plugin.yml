@@ -1,0 +1,4 @@
+name: LocketteReunion
+version: '${version}'
+main: io.github.wafarm.lockettereunion.LocketteReunion
+api-version: '1.20'

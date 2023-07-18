@@ -2,3 +2,16 @@ name: LocketteReunion
 version: '${version}'
 main: io.github.wafarm.lockettereunion.LocketteReunion
 api-version: '1.20'
+commands:
+  lock:
+    description: "LocketteReunion command"
+    usage: >
+      LocketteReunion Help
+      Right click containers with a sign to add a lock.
+      Right click a sign to select it.
+      Break a sign to remove it.
+      A lock can have up to 3 players in the whitelist.
+      /lock: Show this help message.
+      /lock help: Show this help message.
+      /lock add <player>: Add a player to a lock whitelist.
+      /lock remove <player>: Remove a player from a lock whitelist.

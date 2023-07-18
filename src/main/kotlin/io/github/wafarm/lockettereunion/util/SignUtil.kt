@@ -36,7 +36,10 @@ object SignUtil {
             sign.getSide(Side.FRONT).color = DyeColor.WHITE
         }
 
-        sign.persistentDataContainer.set(DataKey.IS_SIGN_LOCK, PersistentDataType.BOOLEAN, true)
+        with(sign.persistentDataContainer) {
+            set(DataKey.IS_SIGN_LOCK, PersistentDataType.BOOLEAN, true)
+            set(DataKey.SIGN_OWNER, PersistentDataType.STRING, owner.uniqueId.toString())
+        }
 
         with(sign.getSide(Side.FRONT)) {
             setLine(0, "[PRIVATE]")
@@ -45,6 +48,26 @@ object SignUtil {
         sign.update()
 
         return newSign
+    }
+
+    fun updateSign(block: Block, players: List<String>) {
+        if (players.size > 3) throw IllegalArgumentException("Invalid argument")
+        val sign = block.state as Sign
+        with(sign.getSide(Side.FRONT)) {
+            var i = 1
+            players.forEach {
+                setLine(i, it)
+                i += 1
+            }
+            while (i <= 3) setLine(i++, "")
+        }
+        sign.update()
+    }
+
+    fun getBlockBehindSign(block: Block): Block {
+        val state = block.state as Sign
+        val data = state.blockData as Directional
+        return block.getRelative(data.facing.oppositeFace)
     }
 
     fun decreaseSignAmount(player: Player) {

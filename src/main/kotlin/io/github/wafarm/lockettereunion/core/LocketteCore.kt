@@ -106,4 +106,10 @@ object LocketteCore {
         return player.uniqueId.toString() == owner
     }
 
+    fun isProtectedBlock(block: Block): Boolean {
+        if (block.state is Sign)
+            return isSignALock(block)
+        return isBlockLocked(block)
+    }
+
 }

@@ -1,6 +1,7 @@
 package io.github.wafarm.lockettereunion
 
 import io.github.wafarm.lockettereunion.core.LocketteCore
+import io.github.wafarm.lockettereunion.listener.EnvironmentListener
 import io.github.wafarm.lockettereunion.listener.PlayerListener
 import io.github.wafarm.lockettereunion.util.SignUtil
 import org.bukkit.Bukkit
@@ -18,6 +19,7 @@ class LocketteReunion : JavaPlugin() {
         plugin = this
         LocketteReunion.logger = logger
         server.pluginManager.registerEvents(PlayerListener(), this)
+        server.pluginManager.registerEvents(EnvironmentListener(), this)
         getCommand("lock")?.setTabCompleter { _, _, _, args ->
             if (args.isEmpty()) {
                 return@setTabCompleter listOf("help", "add", "remove")

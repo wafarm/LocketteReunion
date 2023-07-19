@@ -15,9 +15,9 @@ object LocketteCore {
             with(state.persistentDataContainer) {
                 set(DataKey.IS_LOCKED, PersistentDataType.BOOLEAN, true)
                 set(DataKey.LOCK_OWNER, PersistentDataType.STRING, owner.uniqueId.toString())
-                set(DataKey.LOCK_PLAYERS, PersistentDataType.STRING, owner.uniqueId.toString())
             }
             state.update()
+            setBlockPlayers(block, listOf(PlayerData.fromPlayer(owner)))
             SignUtil.setSign(block, blockFace, owner)
         }
     }
@@ -52,23 +52,32 @@ object LocketteCore {
         return false
     }
 
-    fun getBlockPlayers(block: Block): List<String> {
+    fun getBlockPlayers(block: Block): List<PlayerData> {
         val state = block.state as TileState
-        if (state is Chest) {
+        val dataList = if (state is Chest) {
             val holder = state.inventory.holder
             if (holder is DoubleChest) {
                 val leftChest = holder.leftSide!! as Chest
                 val rightChest = holder.rightSide!! as Chest
-                return if (leftChest.persistentDataContainer.has(DataKey.LOCK_PLAYERS, PersistentDataType.STRING))
+                if (leftChest.persistentDataContainer.has(DataKey.LOCK_PLAYERS, PersistentDataType.STRING))
                     leftChest.persistentDataContainer.get(DataKey.LOCK_PLAYERS, PersistentDataType.STRING)!!.split(';')
                 else
                     rightChest.persistentDataContainer.get(DataKey.LOCK_PLAYERS, PersistentDataType.STRING)!!.split(';')
+            } else {
+                state.persistentDataContainer.get(DataKey.LOCK_PLAYERS, PersistentDataType.STRING)!!.split(';')
             }
+        } else {
+            state.persistentDataContainer.get(DataKey.LOCK_PLAYERS, PersistentDataType.STRING)!!.split(';')
         }
-        return state.persistentDataContainer.get(DataKey.LOCK_PLAYERS, PersistentDataType.STRING)!!.split(';')
+        val playerData = mutableListOf<PlayerData>()
+        for (data in dataList) {
+            if (data.isEmpty()) continue
+            playerData.add(PlayerData.fromString(data))
+        }
+        return playerData.toList()
     }
 
-    fun setBlockPlayers(block: Block, players: List<String>) {
+    fun setBlockPlayers(block: Block, players: List<PlayerData>) {
         val state = block.state as TileState
         val playersString = players.joinToString(";")
         state.persistentDataContainer.set(DataKey.LOCK_PLAYERS, PersistentDataType.STRING, playersString)
@@ -77,8 +86,12 @@ object LocketteCore {
 
     fun hasBlockPermission(block: Block, player: Player): Boolean {
         if (!canLockBlock(block) || !isBlockLocked(block)) return true
-        val playerIds = getBlockPlayers(block)
-        return player.uniqueId.toString() in playerIds
+        val playerDataList = getBlockPlayers(block)
+        val (hasPermission, updated) = playerDataList.hasPlayerAndUpdate(player)
+        if (updated) {
+            setBlockPlayers(block, playerDataList)
+        }
+        return hasPermission
     }
 
     fun removeLock(block: Block) {

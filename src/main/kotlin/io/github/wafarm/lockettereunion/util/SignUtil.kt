@@ -1,6 +1,7 @@
 package io.github.wafarm.lockettereunion.util
 
 import io.github.wafarm.lockettereunion.core.DataKey
+import io.github.wafarm.lockettereunion.core.PlayerData
 import org.bukkit.DyeColor
 import org.bukkit.GameMode
 import org.bukkit.Material
@@ -50,13 +51,13 @@ object SignUtil {
         return newSign
     }
 
-    fun updateSign(block: Block, players: List<String>) {
+    fun updateSign(block: Block, players: List<PlayerData>) {
         if (players.size > 3) throw IllegalArgumentException("Invalid argument")
         val sign = block.state as Sign
         with(sign.getSide(Side.FRONT)) {
             var i = 1
             players.forEach {
-                setLine(i, it)
+                setLine(i, it.name)
                 i += 1
             }
             while (i <= 3) setLine(i++, "")

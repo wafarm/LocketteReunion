@@ -1,6 +1,8 @@
 package io.github.wafarm.lockettereunion
 
 import io.github.wafarm.lockettereunion.core.LocketteCore
+import io.github.wafarm.lockettereunion.core.PlayerData
+import io.github.wafarm.lockettereunion.core.contains
 import io.github.wafarm.lockettereunion.listener.EnvironmentListener
 import io.github.wafarm.lockettereunion.listener.PlayerListener
 import io.github.wafarm.lockettereunion.util.SignUtil
@@ -9,7 +11,6 @@ import org.bukkit.ChatColor
 import org.bukkit.Location
 import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
-import java.util.*
 import java.util.logging.Logger
 
 class LocketteReunion : JavaPlugin() {
@@ -53,47 +54,42 @@ class LocketteReunion : JavaPlugin() {
 
                 val sign = blockPosition!!.block
                 val playerName = args[1]
-                val player = Bukkit.getPlayer(playerName)
-                if (player == null || player.name != playerName) {
-                    sender.sendMessageAlternate("&6[LocketteReunion] &cYou must enter a valid online player name.")
+                if (!playerName.matches(Regex("""^[0-9a-zA-Z_]+$"""))) {
+                    sender.sendMessageAlternate("&6[LocketteReunion] &cPlease enter a valid player name.")
                     return@setExecutor true
                 }
-                val playerId = player.uniqueId.toString()
+                var player = Bukkit.getPlayer(playerName)
+                if (player?.name != playerName) player = null
+                val playerId = player?.uniqueId?.toString() ?: ""
                 val block = SignUtil.getBlockBehindSign(sign)
-                val playerIds = LocketteCore.getBlockPlayers(block)
+                val playerDataList = LocketteCore.getBlockPlayers(block)
 
 
-                val updatePlayers = { newPlayerIds: List<String> ->
+                val updatePlayers = { newPlayerIds: List<PlayerData> ->
                     LocketteCore.setBlockPlayers(block, newPlayerIds)
-                    val players = mutableListOf<String>()
-                    newPlayerIds.forEach {
-                        if (it.isEmpty()) return@forEach
-                        val p = Bukkit.getPlayer(UUID.fromString(it))!!
-                        players.add(p.name)
-                    }
-                    SignUtil.updateSign(sign, players)
+                    SignUtil.updateSign(sign, newPlayerIds)
                 }
 
                 if (args[0] == "add") {
-                    if (playerId in playerIds) {
+                    if (playerName in playerDataList) {
                         sender.sendMessageAlternate("&6[LocketteReunion] &cPlayer is already in the lock whitelist.")
-                    } else if (playerIds.size == 3) {
+                    } else if (playerDataList.size == 3) {
                         sender.sendMessageAlternate("&6[LocketteReunion] &cWhitelist is full.")
                     } else {
-                        val newPlayerIds = playerIds + playerId
-                        updatePlayers(newPlayerIds)
+                        val newPlayerDataList = playerDataList + PlayerData(playerName, playerId)
+                        updatePlayers(newPlayerDataList)
                         sender.sendMessageAlternate("&6[LocketteReunion] &aPlayer is added to the whitelist.")
                     }
                 } else {
-                    if (playerId !in playerIds) {
+                    if (playerName !in playerDataList) {
                         sender.sendMessageAlternate("&6[LocketteReunion] &cPlayer is not in the lock whitelist.")
                     } else {
 //                        if (playerId == sender.uniqueId.toString()) {
 //                            sender.sendMessageAlternate("&6[LocketteReunion] &cYou can't remove yourself from the whitelist.")
 //                            return@setExecutor true
 //                        }
-                        val newPlayerIds = playerIds - playerId
-                        updatePlayers(newPlayerIds)
+                        val newPlayerDataList = playerDataList.filter { it.name != playerName }
+                        updatePlayers(newPlayerDataList)
                         sender.sendMessageAlternate("&6[LocketteReunion] &aPlayer is removed from the whitelist.")
                     }
                 }

@@ -1,6 +1,5 @@
 package io.github.wafarm.lockettereunion.core
 
-import io.github.wafarm.lockettereunion.LocketteReunion
 import io.github.wafarm.lockettereunion.util.SignUtil
 import org.bukkit.block.*
 import org.bukkit.entity.Player
@@ -72,7 +71,6 @@ object LocketteCore {
     fun setBlockPlayers(block: Block, players: List<String>) {
         val state = block.state as TileState
         val playersString = players.joinToString(";")
-        LocketteReunion.logger.info(playersString)
         state.persistentDataContainer.set(DataKey.LOCK_PLAYERS, PersistentDataType.STRING, playersString)
         state.update()
     }

@@ -67,6 +67,7 @@ class LocketteReunion : JavaPlugin() {
                     LocketteCore.setBlockPlayers(block, newPlayerIds)
                     val players = mutableListOf<String>()
                     newPlayerIds.forEach {
+                        if (it.isEmpty()) return@forEach
                         val p = Bukkit.getPlayer(UUID.fromString(it))!!
                         players.add(p.name)
                     }
@@ -87,6 +88,10 @@ class LocketteReunion : JavaPlugin() {
                     if (playerId !in playerIds) {
                         sender.sendMessageAlternate("&6[LocketteReunion] &cPlayer is not in the lock whitelist.")
                     } else {
+//                        if (playerId == sender.uniqueId.toString()) {
+//                            sender.sendMessageAlternate("&6[LocketteReunion] &cYou can't remove yourself from the whitelist.")
+//                            return@setExecutor true
+//                        }
                         val newPlayerIds = playerIds - playerId
                         updatePlayers(newPlayerIds)
                         sender.sendMessageAlternate("&6[LocketteReunion] &aPlayer is removed from the whitelist.")

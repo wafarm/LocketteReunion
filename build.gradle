@@ -59,3 +59,9 @@ processResources {
         expand props
     }
 }
+
+kotlin {
+    sourceSets.configureEach {
+        languageSettings.languageVersion = '2.0'
+    }
+}
